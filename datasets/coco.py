@@ -186,7 +186,7 @@ def make_coco_transforms(image_set):
 
 
 class EnvidosDataset(Dataset):
-    def __init__(self, root, transforms, mode='train'):
+    def __init__(self, root, transforms, mode='train', length=None):
         self._transforms = transforms
 
         self.folder_id = 1
@@ -197,6 +197,7 @@ class EnvidosDataset(Dataset):
         self.folder_name = f'instrument_dataset_{self.folder_id}'
         self.img_folder = os.path.join(root, self.folder_name, 'images')
         self.ann_folder = os.path.join(root, self.folder_name, 'xml')
+        self.length = length
 
 
     def __getitem__(self, index):
@@ -303,6 +304,8 @@ class EnvidosDataset(Dataset):
         return img, target
     
     def __len__(self):
+        if self.length is not None:
+            return self.length
         if self.mode == 'train':
             return 225 * 8
         elif self.mode == 'val':
