@@ -209,7 +209,7 @@ def train_one_epoch(model: torch.nn.Module, criterion: torch.nn.Module,
    
     # gather the stats from all processes
     metric_logger.synchronize_between_processes()
-    print("Averaged stats:", metric_logger)
+    # print("Averaged stats:", metric_logger)
     return {k: meter.global_avg for k, meter in metric_logger.meters.items()}
 
 
@@ -234,12 +234,13 @@ def evaluate(model, criterion, postprocessors, data_loader, base_ds, device, out
             output_dir=os.path.join(output_dir, "panoptic_eval"),
         )
 
-    val_freq = 0
+    # val_freq = 0
+    plot_once = True
     for samples, targets in metric_logger.log_every(data_loader, 500, header):
         samples = samples.to(device)
         
         targets = [{k: v.to(device) for k, v in t.items()} for t in targets]
-        val_freq += 1
+        # val_freq += 1
 
         outputs = model(samples) # batch size is 2
         
@@ -258,8 +259,9 @@ def evaluate(model, criterion, postprocessors, data_loader, base_ds, device, out
         output_boxes = rescale_bboxes(outputs['pred_boxes'][0, keep], np.array(size.cpu())[::-1])
         target = targets[0]
 
-        if val_freq % 10 == 0:
+        if plot_once:
             plot_results_gt(img, probas[keep], output_boxes, target, epoch, im_id, output_dir)
+            plot_once = False
 
         loss_dict = criterion(outputs, targets)
         weight_dict = criterion.weight_dict
